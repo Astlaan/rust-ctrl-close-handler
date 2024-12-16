@@ -6,19 +6,22 @@ use std::sync::{
     Arc,
 };
 use std::{thread, time::Duration};
+use winapi::shared::minwindef::{BOOL, TRUE};
+use winapi::um::consoleapi::SetConsoleCtrlHandler; // SetConsoleCtrlHandler is in consoleapi module
+
+
+
+//============================ rust-ctrlc version (doesn't work) =======================================
+
 
 // fn register_ctrl_handler(exit_flag: Arc<AtomicBool>) {
 //     ctrlc::set_handler(move || {
-//         println!("CTRL+C detected. Handler started...");
 //         let handler_start_time = std::time::Instant::now();
 
-//         for i in 0..5 {
+//         for _ in 0..30 {
 //             let elapsed_secs = handler_start_time.elapsed().as_secs();
 //             let file_name = format!("m_{}.txt", elapsed_secs);
-//             let mut file = File::create(&file_name).expect("Unable to create handler file");
-//             writeln!(file, "Handler elapsed seconds: {}", elapsed_secs)
-//                 .expect("Unable to write to handler file");
-//             println!("Handler saved file: {}", file_name);
+//             File::create(&file_name);
 //             thread::sleep(Duration::from_secs(1));
 //         }
 
@@ -45,21 +48,16 @@ use std::{thread, time::Duration};
 //     println!("Program exited gracefully.");
 // }
 
-use winapi::shared::minwindef::{BOOL, TRUE};
-use winapi::um::consoleapi::SetConsoleCtrlHandler; // SetConsoleCtrlHandler is in consoleapi module
-use winapi::um::wincon::PHANDLER_ROUTINE; // PHANDLER_ROUTINE is in minwinbase module // This one was correct
+// ==================================== WINAPI version =======================================
 
 unsafe extern "system" fn ctrl_handler(_ctrl_type: u32) -> BOOL {
     println!("CTRL+C detected. Handler started...");
     let handler_start_time = std::time::Instant::now();
 
-    for i in 0..5 {
+    for i in 0..30 {
         let elapsed_secs = handler_start_time.elapsed().as_secs();
         let file_name = format!("m_{}.txt", elapsed_secs);
-        if let Ok(mut file) = File::create(&file_name) {
-            writeln!(file, "Handler elapsed seconds: {}", elapsed_secs).ok();
-            println!("Handler saved file: {}", file_name);
-        }
+        File::create(&file_name);
         thread::sleep(Duration::from_secs(1));
     }
 
